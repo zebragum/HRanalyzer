@@ -31,11 +31,17 @@
 <body>
     <div class="container">
         <h1>Heart Rate Analyzer</h1>
-        <p>This is a placeholder landing page. Front-end UI coming soon.</p>
-        <form method="post" action="/analyze" onsubmit="alert('Backend endpoint hit! (UI pending)'); return false;">
-            <input type="text" placeholder="YouTube video URL" name="url" required />
+        <p>Paste a YouTube video URL below and click Analyze.</p>
+        <div id="progressContainer" style="display:none; margin-top:20px; width:400px; background:#333; height:20px; border-radius:10px; overflow:hidden;">
+             <div id="progressBar" style="width:0%; height:100%; background:#4caf50;"></div>
+         </div>
+         <p id="statusMessage" style="margin-top:10px;"></p>
+         <div id="resultContainer" style="margin-top:20px;"></div>
+        <form id="analyzeForm" autocomplete="off">
+            <input id="urlInput" type="text" placeholder="YouTube video URL" required />
             <button type="submit">Analyze</button>
         </form>
     </div>
+    <script src="/static/js/app.js"></script>
 </body>
 </html> 
