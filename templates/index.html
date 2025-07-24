@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Heart Rate Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #111;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+        }
+        input {
+            padding: 0.5rem 1rem;
+            width: 300px;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Heart Rate Analyzer</h1>
+        <p>This is a placeholder landing page. Front-end UI coming soon.</p>
+        <form method="post" action="/analyze" onsubmit="alert('Backend endpoint hit! (UI pending)'); return false;">
+            <input type="text" placeholder="YouTube video URL" name="url" required />
+            <button type="submit">Analyze</button>
+        </form>
+    </div>
+</body>
+</html> 
