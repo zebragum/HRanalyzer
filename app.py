@@ -987,32 +987,49 @@ def download_youtube_video(url, output_path):
         progress_data['progress'] = 0
         progress_data['message'] = 'Downloading YouTube video...'
 
-        ydl_opts = {
+        base_opts = {
             'format': 'mp4[height<=720]',
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
         }
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # First, probe metadata to detect age-restriction or login requirements
-            try:
-                info_dict = ydl.extract_info(url, download=False)
-                if info_dict.get('age_limit', 0) >= 18:
-                    raise ValueError('The selected video is age-restricted and cannot be processed without a logged-in YouTube session. Please choose another video.')
-            except Exception:
-                # If metadata extraction itself fails we will try downloading so fall through
-                pass
+        # Helper to perform download with given options
+        def _do_download(opts):
+            with yt_dlp.YoutubeDL(opts) as ydl:
+                # Light metadata probe for age-restriction
+                try:
+                    info_dict = ydl.extract_info(url, download=False)
+                    if info_dict.get('age_limit', 0) >= 18:
+                        raise ValueError('The selected video is age-restricted and cannot be processed without a logged-in YouTube session. Please choose another video.')
+                except Exception:
+                    pass  # ignore probe errors
 
-            # Attempt the actual download
-            ydl.download([url])
+                ydl.download([url])
+
+        try:
+            _do_download(base_opts)  # Primary attempt
+        except Exception as first_err:
+            # Detect bot / cookie message and retry with android player client
+            msg1 = str(first_err)
+            bot_strings = ("Sign in to confirm", "cookies", "captcha", "invidious-instance")
+            if any(s.lower() in msg1.lower() for s in bot_strings):
+                progress_data['message'] = 'Retrying download (alternate client)...'
+                android_opts = base_opts | {'extractor_args': {'youtube': {'player_client': ['android']}}}
+                try:
+                    _do_download(android_opts)
+                except Exception as second_err:
+                    raise second_err  # propagate for outer except
+            else:
+                raise first_err
 
         return True
     except Exception as e:
         # Provide user-friendly error for common auth / cookie issues
         msg = str(e)
-        if 'Sign in to confirm' in msg or 'cookies' in msg.lower():
-            msg = 'This video requires sign-in (age-restricted or private). Please pick a public video that plays without login.'
+        bad_phrases = ("Sign in to confirm", "cookies", "captcha", "Login required")
+        if any(p.lower() in msg.lower() for p in bad_phrases):
+            msg = 'YouTube blocked the download (likely bot detection or login required). Try another video or retry later.'
 
         progress_data['status'] = 'error'
         progress_data['error'] = msg
