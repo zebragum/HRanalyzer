@@ -986,21 +986,36 @@ def download_youtube_video(url, output_path):
         progress_data['status'] = 'downloading'
         progress_data['progress'] = 0
         progress_data['message'] = 'Downloading YouTube video...'
-        
+
         ydl_opts = {
             'format': 'mp4[height<=720]',
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
         }
-        
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # First, probe metadata to detect age-restriction or login requirements
+            try:
+                info_dict = ydl.extract_info(url, download=False)
+                if info_dict.get('age_limit', 0) >= 18:
+                    raise ValueError('The selected video is age-restricted and cannot be processed without a logged-in YouTube session. Please choose another video.')
+            except Exception:
+                # If metadata extraction itself fails we will try downloading so fall through
+                pass
+
+            # Attempt the actual download
             ydl.download([url])
-        
+
         return True
     except Exception as e:
+        # Provide user-friendly error for common auth / cookie issues
+        msg = str(e)
+        if 'Sign in to confirm' in msg or 'cookies' in msg.lower():
+            msg = 'This video requires sign-in (age-restricted or private). Please pick a public video that plays without login.'
+
         progress_data['status'] = 'error'
-        progress_data['error'] = f'Error downloading video: {str(e)}'
+        progress_data['error'] = msg
         return False
 
 def process_video_thread(youtube_url, timestamps=None, crop=None, enable_tracking=True):
