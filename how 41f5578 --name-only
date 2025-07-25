@@ -1,0 +1,10 @@
+[33m27081fd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Redesign landing page with gradient background, modern card and progress bar styling
+[33m6e4554d[m Add automatic yt-dlp android client fallback to bypass bot/captcha blocks
+[33m2202514[m Improve download_youtube_video: detect age-restricted videos and give friendly error message
+[33m9c41063[m Implement front-end: async analyze, progress bar, results display
+[33m8dc6530[m Add minimal templates/index.html to fix 500 error
+[33m99563ba[m Add matplotlib to requirements and specify Python 3.10 via .python-version
+[33m209a996[m Revert to Render native Python runtime
+[33m465b4ff[m Add Dockerfile and .dockerignore for Render Docker deployment
+[33m274b042[m Specify Python 3.10 for render deployment
+[33m41f5578[m Initial commit

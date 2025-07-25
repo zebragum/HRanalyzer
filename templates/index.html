@@ -1,25 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heart Rate Analyzer</title>
-    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Heart Rate Analyzer</h1>
-        <p>Paste a YouTube video URL below and click Analyze.</p>
-        <div id="progressContainer" style="display:none; margin-top:20px; width:400px; background:#333; height:20px; border-radius:10px; overflow:hidden;">
-             <div id="progressBar" style="width:0%; height:100%; background:#4caf50;"></div>
-         </div>
-         <p id="statusMessage" style="margin-top:10px;"></p>
-         <div id="resultContainer" style="margin-top:20px;"></div>
-        <form id="analyzeForm" autocomplete="off">
-            <input id="urlInput" type="text" placeholder="YouTube video URL" required />
-            <button type="submit">Analyze</button>
-        </form>
+        <!-- Header -->
+        <div class="header">
+            <h1>Heart Rate Analyzer</h1>
+            <p class="subtitle">Contact-less heart-rate detection using Eulerian Video Magnification</p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <div class="url-input-group">
+                <input type="text" id="url-input" placeholder="YouTube Video / Shorts URL" autocomplete="off">
+                <button id="analyze-btn" class="btn btn-primary" disabled>
+                    <span class="btn-text">Enter YouTube URL</span>
+                </button>
+            </div>
+
+            <!-- Timestamp Controls -->
+            <div class="timestamp-section">
+                <div class="timestamp-toggle">
+                    <input type="checkbox" id="custom-timestamps">
+                    <label for="custom-timestamps" class="checkbox-label">Custom Time Range</label>
+                </div>
+                <div class="timestamp-inputs" id="timestamp-controls" style="display:none;">
+                    <div class="time-input-group">
+                        <label for="start-time">Start Time:</label>
+                        <input type="text" id="start-time" class="time-input" placeholder="0:00">
+                    </div>
+                    <div class="time-input-group">
+                        <label for="end-time">End Time:</label>
+                        <input type="text" id="end-time" class="time-input" placeholder="1:30">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Region -->
+            <div class="crop-section">
+                <h3>Analysis Region</h3>
+                <div class="tracking-toggle">
+                    <input type="checkbox" id="enable-tracking" checked>
+                    <label for="enable-tracking" class="checkbox-label">Dynamic Region Tracking</label>
+                </div>
+                <div class="crop-controls">
+                    <button id="reset-crop-btn" class="btn btn-outline" style="display:none;">Reset Selection</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview & Crop Section -->
+        <div id="preview-section" class="preview-section" style="display:none;">
+            <h3>Video Preview & Region Selection</h3>
+            <div class="video-preview">
+                <canvas id="preview-canvas"></canvas>
+                <div id="crop-overlay" class="crop-overlay">
+                    <div id="crop-selection" class="crop-selection" style="display:none;"></div>
+                </div>
+            </div>
+            <div class="crop-actions">
+                <button id="confirm-crop-btn" class="btn btn-success">Confirm Selection & Analyze</button>
+                <button id="cancel-crop-btn" class="btn btn-outline">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progress-section" class="progress-section" style="display:none;">
+            <div class="progress-steps">
+                <div class="step" id="step-download"><div class="step-indicator">1</div><div class="step-label">Download</div></div>
+                <div class="step" id="step-extract"><div class="step-indicator">2</div><div class="step-label">Preview</div></div>
+                <div class="step" id="step-process"><div class="step-indicator">3</div><div class="step-label">Process</div></div>
+                <div class="step" id="step-analyze"><div class="step-indicator">4</div><div class="step-label">Analyze</div></div>
+                <div class="step" id="step-complete"><div class="step-indicator">5</div><div class="step-label">Complete</div></div>
+            </div>
+            <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+            <div id="progress-message" class="progress-message">Initializing…</div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="results-section" style="display:none;">
+            <h2>Results</h2>
+            <div class="results-grid">
+                <div class="result-card"><h3>BPM</h3><div id="bpm-display" class="bpm-display">-- BPM</div><div id="peaks-count" class="peaks-count">-- peaks</div></div>
+                <div class="result-card" id="info-card" style="display:none"><h3>Info</h3><div id="analysis-range" class="analysis-info">Range: --</div><div id="crop-region" class="analysis-info">Region: --</div></div>
+            </div>
+            <div class="plot-container"><img id="plot-image" alt="Heart-Rate Analysis Plot"></div>
+            <div class="video-results">
+                <div class="video-card">
+                    <h3>Original + HR Overlay</h3>
+                    <video id="overlay-video" controls preload="none"><source type="video/mp4"></video>
+                    <div class="video-actions"><button class="video-btn" onclick="playVideo('overlay')">▶ Play/Pause</button><button class="video-btn" onclick="downloadVideo('overlay')">↓ Download</button></div>
+                </div>
+                <div class="video-card">
+                    <h3>Magnified Signal</h3>
+                    <video id="magnified-video" controls preload="none"><source type="video/mp4"></video>
+                    <div class="video-actions"><button class="video-btn" onclick="playVideo('magnified')">▶ Play/Pause</button><button class="video-btn" onclick="downloadVideo('magnified')">↓ Download</button></div>
+                </div>
+            </div>
+        </div>
     </div>
+
     <script src="/static/js/app.js"></script>
 </body>
 </html> 

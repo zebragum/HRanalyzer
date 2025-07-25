@@ -57,15 +57,42 @@ class HeartRateAnalyzer:
     
     def _initialize_tracker(self, first_frame, bbox):
         """Initialize tracker with simplified approach for better compatibility."""
-        print(f"DEBUG: Trying MIL with bbox: {bbox}, frame: {first_frame.shape}")
+        print(f"DEBUG: Initialize tracker with bbox {bbox}")
+
+        # utility to create tracker safely
+        def try_create(fn):
+            try:
+                return fn()
+            except Exception:
+                return None
+
+        tracker_creators = []
+        # OpenCV 4.5+ often exposes trackers in legacy submodule on Windows builds
+        if hasattr(cv2, 'legacy'):
+            if hasattr(cv2.legacy, 'TrackerCSRT_create'):
+                tracker_creators.append(lambda: cv2.legacy.TrackerCSRT_create())
+            if hasattr(cv2.legacy, 'TrackerKCF_create'):
+                tracker_creators.append(lambda: cv2.legacy.TrackerKCF_create())
+
+        # new namespace
+        if hasattr(cv2, 'TrackerCSRT_create'):
+            tracker_creators.append(lambda: cv2.TrackerCSRT_create())
+
+        # fallback MIL
+        if hasattr(cv2, 'TrackerMIL_create'):
+            tracker_creators.append(lambda: cv2.TrackerMIL_create())
+
+        tracker = None
+        for create_fn in tracker_creators:
+            tracker = try_create(create_fn)
+            if tracker is not None:
+                break
+
+        if tracker is None:
+            print("✗ No tracker available (opencv-contrib missing?)")
+            return None
         
         try:
-            # Try creating MIL tracker - most compatible
-            tracker = cv2.TrackerMIL_create()
-            if tracker is None:
-                print("✗ MIL tracker creation failed")
-                return None
-                
             # Ensure frame is grayscale for tracker (some trackers prefer this)
             if len(first_frame.shape) == 3:
                 gray_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
@@ -92,7 +119,7 @@ class HeartRateAnalyzer:
                 return None
                 
         except Exception as e:
-            print(f"✗ MIL tracker failed with exception: {e}")
+            print(f"✗ Tracker init exception: {e}")
             return None
     
     def _extract_consistent_region(self, frame, crop, target_width, target_height, tracked_bbox=None, rotation=0):
@@ -304,7 +331,6 @@ class HeartRateAnalyzer:
                 if tracker:
                     # Update tracker
                     success, bbox = tracker.update(frame)
-                    frame_count += 1
                     
                     if success and bbox is not None:
                         # Estimate rotation if we have a previous frame
